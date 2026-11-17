@@ -1,0 +1,31 @@
+[project]
+name = "jobmatch"
+version = "1.0.0"
+description = "API REST de recommandation d'offres d'emploi (matching hybride)"
+requires-python = ">=3.12"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["**/migrations/*"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "DJ", "S", "C4", "SIM"]
+ignore = ["S101", "S311", "S324", "DJ001"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S105", "S106"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["apps", "config"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+python_files = ["test_*.py"]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --cov=apps --cov=config --cov-report=term-missing --cov-report=xml --cov-fail-under=80"
+filterwarnings = ["ignore::DeprecationWarning:celery.*"]
+
+[tool.coverage.run]
+branch = true
+omit = ["*/migrations/*", "config/wsgi.py", "config/settings/prod.py", "config/settings/dev.py", "*/admin.py"]
