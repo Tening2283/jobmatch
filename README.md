@@ -115,13 +115,14 @@ Les tests utilisent une vraie base PostgreSQL/pgvector, Celery en mode eager et 
 ## CI/CD
 
 - **`ci.yml`** (push / PR) : ruff → vérification des migrations → pytest avec services `pgvector/pgvector:pg16` et `redis:7` (seuil 80 %, rapport `coverage.xml` en artefact) → build de l'image Docker sur les PR.
-- **`cd.yml`** (CI verte sur `main`, tag `v*` ou manuel) : build & push sur GHCR (`sha-<commit>` + `latest`) → copie des fichiers de déploiement sur le VPS → `scripts/deploy.sh` : pull, migrations, `up -d`, healthcheck, **rollback automatique** vers l'image précédente en cas d'échec.
+- **`cd.yml`** (CI verte sur `main`, tag `v*` ou manuel) : build & push sur GHCR (`sha-<commit>` + `latest`) → si `DEPLOY_ENABLED=true`, copie des fichiers de déploiement sur le VPS → `scripts/deploy.sh` : pull, migrations, `up -d`, healthcheck, **rollback automatique** vers l'image précédente en cas d'échec.
 
 ### Mise en place du VPS
 
 1. Installer Docker + le plugin Compose, créer `/opt/jobmatch` et y placer un `.env` de production (voir `.env.example` ; `DJANGO_ALLOWED_HOSTS` doit inclure `localhost` pour le healthcheck).
 2. Dans GitHub → *Settings → Environments → production*, ajouter les secrets :
    `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY` (clé privée), optionnellement `VPS_APP_DIR` et `GHCR_READ_TOKEN` (PAT `read:packages`, nécessaire si le package GHCR est privé, car le `GITHUB_TOKEN` expire après le job).
-3. HTTPS : placer un certificat devant nginx (Certbot, ou Caddy/Traefik) puis mettre `DJANGO_SECURE_SSL_REDIRECT=1`.
+3. Dans *Settings → Secrets and variables → Actions → Variables*, créer la variable de dépôt `DEPLOY_ENABLED` = `true`. Sans elle, le CD publie l'image sur GHCR mais saute l'étape de déploiement.
+4. HTTPS : placer un certificat devant nginx (Certbot, ou Caddy/Traefik) puis mettre `DJANGO_SECURE_SSL_REDIRECT=1`.
 
 > Le rollback restaure l'image précédente mais ne revient pas sur les migrations : gardez des migrations rétro‑compatibles (expand/contract).

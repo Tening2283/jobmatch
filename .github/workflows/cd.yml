@@ -56,6 +56,10 @@ jobs:
 
   deploy:
     needs: build-and-push
+    # Désactivé tant qu'aucun VPS n'est configuré : créer la variable de dépôt
+    # DEPLOY_ENABLED=true (Settings → Secrets and variables → Actions → Variables)
+    # après avoir ajouté les secrets de l'environnement "production".
+    if: vars.DEPLOY_ENABLED == 'true'
     runs-on: ubuntu-latest
     environment: production
     steps:
